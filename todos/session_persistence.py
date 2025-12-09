@@ -1,6 +1,6 @@
 from uuid import uuid4 
 
-class SesssionPersistence:
+class SessionPersistence:
     def __init__(self, session):
         self.session = session
         if 'lists' not in self.session:
@@ -19,3 +19,13 @@ class SesssionPersistence:
             'todos': [],
         })
         self.session.modified = True
+    
+    def update_list_by_id(self, list_id, new_title):
+        lst = self.find_list(list_id)
+        if lst:
+            lst['title'] = new_title 
+            self.session.modified = True
+
+    def delete_list(self, list_id):
+        self.session['lists'] = [lst for lst in self.all_lists() if list_id != lst.id]
+        self.session.modified = True 
