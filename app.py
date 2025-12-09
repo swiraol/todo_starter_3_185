@@ -2,8 +2,10 @@ import secrets
 from uuid import uuid4
 from functools import wraps
 from flask import (
+    all_lists,
     flash,
     Flask,
+    g,
     redirect,
     render_template,
     request,
@@ -15,7 +17,6 @@ from todos.utils import (
     delete_todo_by_id,
     error_for_list_title, 
     error_for_todo, 
-    find_list_by_id,
     find_todo_by_id,
     is_list_completed,
     is_todo_completed,
@@ -24,6 +25,8 @@ from todos.utils import (
     todos_remaining,
 )
 
+from todos.session_persistence import SessionPersistence
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
@@ -31,7 +34,7 @@ def require_list(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         list_id = kwargs.get('list_id')
-        lst = find_list_by_id(list_id, session['lists'])
+        lst = g.storage.find_list(list_id)
         if not lst:
             raise NotFound(description="List not found")
         return f(lst=lst, *args, **kwargs)
@@ -57,9 +60,8 @@ def list_utilities_processor():
     )
 
 @app.before_request
-def initialize_session():
-    if 'lists' not in session:
-        session['lists'] = []
+def load_storage():
+    g.storage = SessionPersistence(session)
 
 @app.route("/")
 def index():
@@ -67,7 +69,7 @@ def index():
 
 @app.route("/lists")
 def get_lists():
-    lists = sort_items(session['lists'], is_list_completed)
+    lists = sort_items(g.storage.all_lists(), is_list_completed)
     return render_template('lists.html',
                            lists=lists,
                            todos_remaining=todos_remaining)
@@ -76,19 +78,14 @@ def get_lists():
 def create_list():
     title = request.form["list_title"].strip()
 
-    error = error_for_list_title(title, session['lists'])
+    error = error_for_list_title(title, g.storage.all_lists())
     if error:
         flash(error, "error")
         return render_template('new_list.html', title=title)
 
-    session['lists'].append({
-        'id': str(uuid4()),
-        'title': title,
-        'todos': [],
-    })
+    g.storage.create_new_list(title)
 
     flash("The list has been created.", "success")
-    session.modified = True
     return redirect(url_for('get_lists'))
 
 @app.route("/lists/new")
@@ -168,7 +165,7 @@ def delete_list(lst, list_id):
 def update_list(lst, list_id):
     title = request.form["list_title"].strip()
 
-    error = error_for_list_title(title, session['lists'])
+    error = error_for_list_title(title, g.storage.all_lists())
     if error:
         flash(error, "error")
         return render_template('edit_list.html', lst=lst, title=title)
