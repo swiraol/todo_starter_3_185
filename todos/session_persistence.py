@@ -38,3 +38,9 @@ class SessionPersistence:
             'completed': False,
         })
         self.session.modified = True 
+
+    def delete_todo_from_list(self, todo_id, list_id):
+        lst = self.find_list(list_id)
+        if lst:
+            lst['todos'] = [todo for todo in lst['todos'] if todo_id != todo['id']]
+            self.session.modified = True
