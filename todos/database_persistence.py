@@ -69,7 +69,11 @@ class DatabasePersistence:
                 cursor.execute(query, (new_title, list_id))
 
     def delete_list(self, list_id):
-        pass
+        query = "DELETE FROM lists WHERE id = %s"
+        logger.info("Executing query: %s with id: %s", query, list_id)
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (list_id,))
         
     def create_new_todo(self, list_id, todo_title):
         pass 
