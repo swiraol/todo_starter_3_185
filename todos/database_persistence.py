@@ -18,7 +18,7 @@ class DatabasePersistence:
                 cursor.execute("""
                     SELECT COUNT(*)
                     FROM information_schema.tables
-                    WHERE table_schema = 'public' AND table_name = 'lists'l
+                    WHERE table_schema = 'public' AND table_name = 'lists'
                 """)
                 if cursor.fetchone()[0] == 0:
                     cursor.execute("""
@@ -108,20 +108,20 @@ class DatabasePersistence:
                 cursor.execute(query, (list_id,))
         
     def create_new_todo(self, list_id, todo_title):
-        query = "INSERT INTO todos (title, list_id) VALUES (%s, %s)"
-        logger.info("Executing query: %s with title: %s and list_id: %s", query, todo_title, list_id)
+        query = "INSERT INTO todos (list_id, title) VALUES (%s, %s)"
+        logger.info("Executing query: %s with list_id: %s and title: %s", query, list_id, todo_title)
 
         with self._database_connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (todo_title, list_id,))
+                cursor.execute(query, (list_id, todo_title,))
 
-    def delete_todo_from_list(self, todo_id, list_id):
-        query = "DELETE FROM todos WHERE id=%s and list_id=%s"
-        logger.info("Executing query: %s with todo_id: %s and list_id: %s")
+    def delete_todo_from_list(self, list_id, todo_id):
+        query = "DELETE FROM todos WHERE list_id=%s and id=%s"
+        logger.info("Executing query: %s with list_id: %s and todo_id: %s", query, list_id, todo_id)
 
         with self._database_connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (todo_id, list_id,))
+                cursor.execute(query, (list_id, todo_id,))
     
     def update_todo_status(self, list_id, todo_id, new_status):
         query = """

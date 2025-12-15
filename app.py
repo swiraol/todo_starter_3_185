@@ -119,7 +119,7 @@ def update_todo_status(lst, todo, list_id, todo_id):
 @app.route("/lists/<int:list_id>/todos/<int:todo_id>/delete", methods=["POST"])
 @require_todo
 def delete_todo(lst, todo, list_id, todo_id):
-    g.storage.delete_todo_from_list(todo_id, list_id)
+    g.storage.delete_todo_from_list(list_id, todo_id)
     flash("The todo has been deleted.", "success")
     return redirect(url_for('show_list', list_id=list_id))
 
