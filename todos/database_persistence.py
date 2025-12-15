@@ -70,19 +70,42 @@ class DatabasePersistence:
 
     def delete_list(self, list_id):
         query = "DELETE FROM lists WHERE id = %s"
-        logger.info("Executing query: %s with id: %s", query, list_id)
+        logger.info("Executing query: %s with list_id: %s", query, list_id)
         with self._database_connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (list_id,))
         
     def create_new_todo(self, list_id, todo_title):
-        pass 
+        query = "INSERT INTO todos (title, list_id) VALUES (%s, %s)"
+        logger.info("Executing query: %s with title: %s and list_id: %s", query, todo_title, list_id)
+
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (todo_title, list_id,))
 
     def delete_todo_from_list(self, todo_id, list_id):
-        pass
+        query = "DELETE FROM todos WHERE id=%s and list_id=%s"
+        logger.info("Executing query: %s with todo_id: %s and list_id: %s")
+
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (todo_id, list_id,))
     
     def update_todo_status(self, list_id, todo_id, new_status):
-        pass
+        query = """
+            UPDATE todos SET completed = %s 
+            WHERE id = %s and list_id = %s
+        """
+        logger.info("Executing query: %s with new status: %s, id: %s, list_id: %s", query, new_status, todo_id, list_id)
+
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (new_status, todo_id, list_id,))
     
     def mark_all_todos_completed(self, list_id):
-        pass
+        query = "UPDATE todos SET completed = True WHERE list_id = %s"
+        logger.info("Executing query: %s with list_id: %s", query, list_id)
+
+        with self._database_connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (list_id,))
